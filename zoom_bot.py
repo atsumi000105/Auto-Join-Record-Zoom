@@ -7,15 +7,7 @@ from datetime import datetime
 def sign_in(meetingid, pswd):
     #Opens up the zoom app
     #change the path specific to your computer
-    
-    #If on windows use below line for opening zoom
-    #subprocess.call('C:\\myprogram.exe')
-    
-    #If on mac / Linux use below line for opening zoom
-    subprocess.call(["/usr/bin/open", "/Applications/zoom.us.app"])
-
-    time.sleep(10)
-    
+      
     #clicks the join button
     join_btn = pyautogui.locateCenterOnScreen('join_button.png')
     pyautogui.moveTo(join_btn)
@@ -51,7 +43,6 @@ def sign_in(meetingid, pswd):
 df = pd.read_csv('timings.csv')
 
 while True:
-    print("Hi")
     # checking of the current time exists in our csv file
     now = datetime.now().strftime("%H:%M")
     if now in str(df['timings']):
