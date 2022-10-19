@@ -1,5 +1,6 @@
 from calendar import c
 from os import nice
+import re
 import subprocess
 from tkinter import N
 from traceback import print_tb
@@ -8,21 +9,15 @@ from time import sleep
 import json
 import multiprocessing as mp
 from datetime import datetime
-from utils import get_remaining_minutes_to_start
+from utils import get_remaining_minutes_to_start, kill
 
 ONE_HOUR_IN_SECONDS = 3600
 ZOOM_LAUNCH_TIME = 5  # seconds
 TIME_FOR_LAUCHING_ZOOM = 7  # seconds
+ADDITIONAL_RECORDING_TIME = 60  # seconds
 
 
-def meet():
-
-    meeting = get_upcoming_meeting()
-    if meeting == None:
-        return
-
-    # Exit from zoom if it's open.
-    exit_zoom()
+def meet(meeting):
 
     # Launching zoom.
     p_zoom = mp.Process(target=zoom)
@@ -30,16 +25,33 @@ def meet():
     sleep(TIME_FOR_LAUCHING_ZOOM)
 
     # Joining and watching meeting
-    p_join_watch = mp.Process(target=join_and_watch_meeting)
+    p_join_watch = mp.Process(target=join_and_watch_meeting, args=(meeting,))
     p_join_watch.start()
 
+    # Meeting has ended.
     p_join_watch.join()
-    p_zoom.join()
+
+    # Closing zoom
+    kill(zoom)
 
 
-def record():
-    subprocess.call("resulution=$(xdpyinfo | awk '/dimensions/{print $2}'); \
-        ffmpeg -video_size $resulution -framerate 25 -f x11grab -i :0.0+0,0 -f pulse -ac 2 -i default output.mp4", shell=True)
+def record(meeting):
+
+    # To ensure ffmpeg isn't running
+    kill('ffmpeg')
+
+    recording_duration = (
+        meeting["duration"] * ONE_HOUR_IN_SECONDS) + ADDITIONAL_RECORDING_TIME
+
+    recording_file_name = f'meeting{meeting["id"]}.mp4'
+
+    subprocess.call(f'rm {recording_file_name}', shell=True)
+
+    get_screen_resolution_command = "resulution=$(xdpyinfo | awk '/dimensions/{print $2}')"
+    record_command = f'ffmpeg -video_size $resulution -framerate 25 -f x11grab -i :0.0+0,0 \
+        -f alsa -i default -t {recording_duration} {recording_file_name}'
+    subprocess.call(get_screen_resolution_command +
+                    ";" + record_command, shell=True)
 
 
 def zoom():
@@ -51,6 +63,9 @@ def zoom():
 
     # If on mac / Linux use below line for opening zoom
     #subprocess.run(['echo hi', '&', ''])
+
+    # To ensure zoom isn't running
+    kill('zoom')
 
     print("Lauching Zoom...")
     subprocess.call("/usr/bin/zoom", shell=True)
@@ -111,7 +126,7 @@ def join_and_watch_meeting(meeting):
         "plus_join_btn.png", confidence=.8)
     if plus_join_btn == None:
         print("Plus_join_button could not be found.")
-        return
+        exit()
 
     pg.moveTo(plus_join_btn)
     pg.click()
@@ -122,7 +137,7 @@ def join_and_watch_meeting(meeting):
         'meeting_id_text_field.png', grayscale=True, confidence=.8)
     if meeting_id_text_field == None:
         print("Meeting ID text field could not be found.")
-        return
+        exit()
 
     pg.moveTo(meeting_id_text_field)
     pg.click()
@@ -135,7 +150,7 @@ def join_and_watch_meeting(meeting):
 
     if join_btn == None:
         print("Join button could not be found.")
-        return
+        exit()
     pg.moveTo(join_btn)
     pg.click()
 
@@ -158,8 +173,3 @@ def join_and_watch_meeting(meeting):
     sleep(meeting['duration'] * ONE_HOUR_IN_SECONDS)
 
     print("Meeting ends...")
-
-
-def exit_zoom():
-    # Closes the zoom app.
-    subprocess.call("pidof zoom && kill -9 $(pidof zoom)", shell=True)

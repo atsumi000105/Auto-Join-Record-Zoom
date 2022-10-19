@@ -1,32 +1,24 @@
 from asyncore import poll3
 from re import L
 from time import sleep
-from bot_functions import join_and_watch_meeting, zoom, get_upcoming_meeting, launch_zoom, exit_zoom, record, stop_recording
+from bot_functions import meet, record, get_upcoming_meeting
 import multiprocessing as mp
+from utils import kill
 
-TIME_FOR_LAUCHING_ZOOM = 7  # seconds
-
-# Ensuring that zoom isn't launched.
-exit_zoom()
-
-# Process for starting recording.
-p_recording = mp.Process(target=record)
+meeting = get_upcoming_meeting()
+if meeting == None:
+    exit()
 
 # Start recording
+p_recording = mp.Process(target=record, args=(meeting,))
 p_recording.start()
 
-# Process for launching zoom.
-p_launch_zoom = mp.Process(target=zoom)
+# Meet
+p_meet = mp.Process(target=meet, args=(meeting,))
+p_meet.start()
 
-# Launching zoom in a child process.
-p_launch_zoom.start()
-sleep(TIME_FOR_LAUCHING_ZOOM)
+p_meet.join()
+p_recording.join()
 
-# Find next meeting.
-meeting = get_upcoming_meeting()
-
-join_and_watch_meeting(meeting)
-
-exit_zoom()
-
-p_recording.terminate()
+kill('zoom')
+kill('ffmpeg')
