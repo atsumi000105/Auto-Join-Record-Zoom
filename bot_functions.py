@@ -14,7 +14,8 @@ from utils import get_remaining_minutes_to_start, kill
 ONE_HOUR_IN_SECONDS = 3600
 ZOOM_LAUNCH_TIME = 5  # seconds
 TIME_FOR_LAUCHING_ZOOM = 7  # seconds
-ADDITIONAL_RECORDING_TIME = 60  # seconds
+ADDITIONAL_ZOOM_TIME = 60  # seconds
+ADDITIONAL_RECORDING_TIME = ADDITIONAL_ZOOM_TIME + 30  # seconds
 
 
 def meet(meeting):
@@ -24,15 +25,19 @@ def meet(meeting):
     p_zoom.start()
     sleep(TIME_FOR_LAUCHING_ZOOM)
 
-    # Joining and watching meeting
+    # Joining Meeting
     p_join_watch = mp.Process(target=join_and_watch_meeting, args=(meeting,))
     p_join_watch.start()
-
-    # Meeting has ended.
     p_join_watch.join()
 
+    print("Watching the meeting...")
+    # Sleep until the meeting ends.
+    sleep(meeting['duration'] * ONE_HOUR_IN_SECONDS + ADDITIONAL_ZOOM_TIME)
+
+    print("Meeting ends...")
     # Closing zoom
     kill(zoom)
+    exit()
 
 
 def record(meeting):
@@ -167,9 +172,4 @@ def join_and_watch_meeting(meeting):
     # Switch to full screen.
     pg.hotkey("alt", "f10")
 
-    print("Watching the meeting...")
-
-    # Sleep until the meeting ends.
-    sleep(meeting['duration'] * ONE_HOUR_IN_SECONDS)
-
-    print("Meeting ends...")
+    exit()
