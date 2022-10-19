@@ -1,10 +1,16 @@
 {
   "meetings": [
     {
-      "id": 1234,
-      "password": 1234,
-      "start_time": "22.00",
-      "duration": 0.004
+      "id": 5671508296,
+      "password": 5671508296,
+      "start_time": "12.00",
+      "duration": 0.04
+    },
+    {
+      "id": 5671508296,
+      "password": "2S192E",
+      "start_time": "23.00",
+      "duration": 0.04
     }
   ]
 }

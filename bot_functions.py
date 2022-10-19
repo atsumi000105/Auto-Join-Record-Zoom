@@ -1,8 +1,9 @@
 from calendar import c
+from os import nice
 import subprocess
 from tkinter import N
 from traceback import print_tb
-import pyautogui
+import pyautogui as pg
 from time import sleep
 import json
 from datetime import datetime
@@ -29,8 +30,7 @@ def launch_zoom():
 
 def exit_zoom():
     # Closes the zoom app.
-
-    subprocess.call("sudo kill -9 $(pidof zoom)", shell=True)
+    subprocess.call("pidof zoom && kill -9 $(pidof zoom)", shell=True)
 
 
 def get_upcoming_meeting():
@@ -78,31 +78,42 @@ def join_and_watch_meeting(meeting):
     # Joins in a zoom Meeting.
     # Assumed that zoom is open and visible on the screen.
     if meeting == None:
-        exit()
+        return
 
     print("Joining into the meeting...")
+
     # Clicks the join button
-    # join_btn = pyautogui.locateCenterOnScreen('join_button.png')
-    # pyautogui.moveTo(join_btn)
-    # pyautogui.click()
+    plus_join_btn = pg.locateOnScreen(
+        "plus_join_btn.png", confidence=.8)
+    if plus_join_btn == None:
+        print("Plus_join_button could not be found.")
+        return
 
-    # # Type the meeting ID
-    # meeting_id_btn = pyautogui.locateCenterOnScreen('meeting_id_button.png')
-    # pyautogui.moveTo(meeting_id_btn)
-    # pyautogui.click()
-    # pyautogui.write(meeting.id)
+    pg.moveTo(plus_join_btn)
+    pg.click()
+    sleep(2)
 
-    # # Disables both the camera and the mic
-    # media_btn = pyautogui.locateAllOnScreen('media_btn.png')
-    # for btn in media_btn:
-    #     pyautogui.moveTo(btn)
-    #     pyautogui.click()
-    #     sleep(2)
+    # Type the meeting ID
+    meeting_id_text_field = pg.locateCenterOnScreen(
+        'meeting_id_text_field.png', grayscale=True, confidence=.8)
+    if meeting_id_text_field == None:
+        print("Meeting ID text field could not be found.")
+        return
 
-    # # Hits the join button
-    # join_btn = pyautogui.locateCenterOnScreen('join_btn.png')
-    # pyautogui.moveTo(join_btn)
-    # pyautogui.click()
+    pg.moveTo(meeting_id_text_field)
+    pg.click()
+    pg.write(str(meeting['id']))
+    sleep(2)
+
+    # Hits the join button
+    join_btn = pg.locateCenterOnScreen(
+        'join_btn.png', grayscale=True, confidence=.8)
+
+    if join_btn == None:
+        print("Join button could not be found.")
+        return
+    pg.moveTo(join_btn)
+    pg.click()
 
     # sleep(5)
     # # Types the password and hits enter
@@ -112,9 +123,14 @@ def join_and_watch_meeting(meeting):
     # pyautogui.write(meeting.pswd)
     # pyautogui.press('enter')
 
+    sleep(5)
+
+    # Switch to full screen.
+    pg.hotkey("alt", "f10")
+
+    print("Watching the meeting...")
+
     # Sleep until the meeting ends.
     sleep(meeting['duration'] * ONE_HOUR_IN_SECONDS)
 
     print("Meeting ends...")
-
-    exit()

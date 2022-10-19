@@ -1,2 +1,3 @@
 # ZoomBot
-A zoom bot which auto joins/records zoom meetings.
+
+A zoom bot which auto joins and records zoom meetings.
