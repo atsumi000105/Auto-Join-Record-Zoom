@@ -26,17 +26,20 @@ def meet(meeting):
     sleep(TIME_FOR_LAUCHING_ZOOM)
 
     # Joining Meeting
-    p_join_watch = mp.Process(target=join_and_watch_meeting, args=(meeting,))
-    p_join_watch.start()
-    p_join_watch.join()
+    p_join = mp.Process(target=join, args=(meeting,))
+    p_join.start()
+    p_join.join()
 
     print("Watching the meeting...")
     # Sleep until the meeting ends.
     sleep(meeting['duration'] * ONE_HOUR_IN_SECONDS + ADDITIONAL_ZOOM_TIME)
 
-    print("Meeting ends...")
-    # Closing zoom
-    kill(zoom)
+    print("Meeting ended.")
+
+    # Quiting zoom
+    print("Quiting Zoom.")
+    p_zoom.terminate()
+    kill('zoom')
     exit()
 
 
@@ -50,6 +53,7 @@ def record(meeting):
 
     recording_file_name = f'meeting{meeting["id"]}.mp4'
 
+    # To ensure this recording file name doesn't already exist.
     subprocess.call(f'rm {recording_file_name}', shell=True)
 
     get_screen_resolution_command = "resulution=$(xdpyinfo | awk '/dimensions/{print $2}')"
@@ -63,12 +67,6 @@ def zoom():
     # Opens up the zoom app.
     # Change the path specific to your computer
 
-    # If on windows use below line for opening zoom
-    # subprocess.call('C:\\myprogram.exe')
-
-    # If on mac / Linux use below line for opening zoom
-    #subprocess.run(['echo hi', '&', ''])
-
     # To ensure zoom isn't running
     kill('zoom')
 
@@ -78,7 +76,7 @@ def zoom():
 
 
 def get_upcoming_meeting():
-    # Finds the next meeting. Assuminig that the meetings are today.
+    # Finds Todays next meeting.
 
     print("Looking for next meeting...")
 
@@ -118,7 +116,7 @@ def get_upcoming_meeting():
     return upcoming_meeting
 
 
-def join_and_watch_meeting(meeting):
+def join(meeting):
     # Joins in a zoom Meeting.
     # Assumed that zoom is open and visible on the screen.
     if meeting == None:

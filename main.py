@@ -6,6 +6,8 @@ import multiprocessing as mp
 from utils import kill
 
 meeting = get_upcoming_meeting()
+
+# If no upcoming meeting exsist. exit program immediately.
 if meeting == None:
     exit()
 
@@ -13,12 +15,9 @@ if meeting == None:
 p_recording = mp.Process(target=record, args=(meeting,))
 p_recording.start()
 
-# Meet
+# Meet on zoom
 p_meet = mp.Process(target=meet, args=(meeting,))
 p_meet.start()
 
 p_meet.join()
 p_recording.join()
-
-kill('zoom')
-kill('ffmpeg')
