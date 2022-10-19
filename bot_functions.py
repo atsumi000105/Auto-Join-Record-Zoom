@@ -6,14 +6,43 @@ from traceback import print_tb
 import pyautogui as pg
 from time import sleep
 import json
+import multiprocessing as mp
 from datetime import datetime
 from utils import get_remaining_minutes_to_start
 
 ONE_HOUR_IN_SECONDS = 3600
 ZOOM_LAUNCH_TIME = 5  # seconds
+TIME_FOR_LAUCHING_ZOOM = 7  # seconds
 
 
-def launch_zoom():
+def meet():
+
+    meeting = get_upcoming_meeting()
+    if meeting == None:
+        return
+
+    # Exit from zoom if it's open.
+    exit_zoom()
+
+    # Launching zoom.
+    p_zoom = mp.Process(target=zoom)
+    p_zoom.start()
+    sleep(TIME_FOR_LAUCHING_ZOOM)
+
+    # Joining and watching meeting
+    p_join_watch = mp.Process(target=join_and_watch_meeting)
+    p_join_watch.start()
+
+    p_join_watch.join()
+    p_zoom.join()
+
+
+def record():
+    subprocess.call("resulution=$(xdpyinfo | awk '/dimensions/{print $2}'); \
+        ffmpeg -video_size $resulution -framerate 25 -f x11grab -i :0.0+0,0 -f pulse -ac 2 -i default output.mp4", shell=True)
+
+
+def zoom():
     # Opens up the zoom app.
     # Change the path specific to your computer
 
@@ -26,11 +55,6 @@ def launch_zoom():
     print("Lauching Zoom...")
     subprocess.call("/usr/bin/zoom", shell=True)
     exit()
-
-
-def exit_zoom():
-    # Closes the zoom app.
-    subprocess.call("pidof zoom && kill -9 $(pidof zoom)", shell=True)
 
 
 def get_upcoming_meeting():
@@ -134,3 +158,8 @@ def join_and_watch_meeting(meeting):
     sleep(meeting['duration'] * ONE_HOUR_IN_SECONDS)
 
     print("Meeting ends...")
+
+
+def exit_zoom():
+    # Closes the zoom app.
+    subprocess.call("pidof zoom && kill -9 $(pidof zoom)", shell=True)
