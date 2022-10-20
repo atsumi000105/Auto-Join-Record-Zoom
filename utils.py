@@ -1,6 +1,9 @@
 import imp
 from math import remainder
+from pickle import FALSE
+from sre_constants import SUCCESS
 import subprocess
+import pyautogui as pg
 
 ONE_HOUR_IN_MINUTES = 60
 

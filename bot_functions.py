@@ -1,8 +1,10 @@
 from calendar import c
+from concurrent.futures import process
 from os import nice
 import re
 import subprocess
 from tkinter import N
+from tkinter.messagebox import RETRY
 from traceback import print_tb
 import pyautogui as pg
 from time import sleep
@@ -122,15 +124,20 @@ def join(meeting):
     if meeting == None:
         return
 
-    print("Joining into the meeting...")
+    logs = []
+
+    logs.append("Joining into the meeting...")
+    print(logs[-1])
 
     # Clicks the join button
     plus_join_btn = pg.locateOnScreen(
         "plus_join_btn.png", confidence=.8)
     if plus_join_btn == None:
-        print("Plus_join_button could not be found.")
+        logs.append("Plus_join_button could not be found.")
+        print(logs[-1])
         exit()
-
+    logs.append("Found Plus_join_button.")
+    print(logs[-1])
     pg.moveTo(plus_join_btn)
     pg.click()
     sleep(2)
@@ -171,3 +178,27 @@ def join(meeting):
     pg.hotkey("alt", "f10")
 
     exit()
+
+
+def click_button(img):
+    # Clicks the join button
+    SUCCESS = False
+    plus_join_btn = pg.locateOnScreen(
+        "plus_join_btn.png", confidence=.8)
+
+    SUCCESS = get_help(img) if (plus_join_btn == None) else True
+
+    if not SUCCESS:
+        raise
+
+    return {0, "Plus_join_button could not be found."}
+    print(logs[-1])
+    exit()
+    logs.append("Found Plus_join_button.")
+    print(logs[-1])
+    pg.moveTo(plus_join_btn)
+    pg.click()
+
+
+def get_help():
+    return True
