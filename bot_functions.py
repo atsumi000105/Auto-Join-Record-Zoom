@@ -70,9 +70,27 @@ def zoom():
     # To ensure zoom isn't running
     kill('zoom')
 
+    open_zoom_cmd = get_open_zoom_cmd()
+
     print("Lauching Zoom...")
-    subprocess.call("/usr/bin/zoom", shell=True)
+    subprocess.call(open_zoom_cmd, shell=True)
+
     exit()
+
+def get_open_zoom_cmd():
+    '''
+    returns command for launching zoom concerning to the current OS.
+    '''    
+    import platform
+    os = platform.system()
+    if os == 'Darwin':
+        open_zoom_cmd = "/usr/bin/open /Applications/zoom.us.app/"
+    elif os == 'Linux':
+        open_zoom_cmd = "/usr/bin/zoom"
+    elif os == 'Windows':
+        open_zoom_cmd = 'C:\\zoom.exe'
+
+    return open_zoom_cmd
 
 
 def get_upcoming_meeting():
